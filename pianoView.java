@@ -62,9 +62,8 @@ public class pianoView {
     private int volume_value; //Avgjør høyden på volumet.
     private HashMap<String, Integer> panel_indekser =  new HashMap<String, Integer>() {{put("PANEL_A",0);put("PANEL_B",1);put("PANEL_C",2);put("PANEL_D",3);put("PANEL_E",4);put("PANEL_F",5);put("PANEL_G",6);put("PANEL_H",7);}};//For å sette akkord_panel_liste til riktig tall når brukeren trykker på et panel.
     private HashMap<String, Color> note_farge = new HashMap<String, Color>() {{put("C", Color.WHITE);put("Db", Color.BLACK);put("D", Color.WHITE);put("Eb", Color.BLACK);put("E", Color.WHITE);put("F", Color.WHITE);put("Gb", Color.BLACK);put("G", Color.WHITE);put("Ab", Color.BLACK);put("A", Color.WHITE);put("Bb", Color.BLACK);put("B", Color.WHITE);}};
-    private HashMap<JPanel, JPanel> venstre_naboer; //Oversikt over hvilke sorte tangenter som er til venstre for de hvite tangentene.
-    private HashMap<JPanel, JPanel> hoyre_naboer; //Oversikt over hvilke sorte tangenter som er til venstre for de hvite tangentene.
-    //Visuelt:
+	
+    //Det vi trenger for å sette opp det visuelle i programmet:
     private JButton avslutt, spill_harmoni, lag_harmoni, volume; //Alle knappene i programmet.
     private best_frame vinduet;
     private JLabel C1, C2, C3, C4, C5, C6, info_1, info_2, volume_tekst, oktav_tekst, add_tekst, show_tekst, chord_overskrift, 
@@ -86,13 +85,12 @@ public class pianoView {
     private ArrayList<JLabel> fill_liste; //Grupperer disse objektene i liste for å skrive mindre kode senere.
     private ArrayList<JTextField> tekstfelt_liste;
     private ArrayList<JPanel> tekstpanel_liste;
-    private ArrayList<JPanel> sorte_tangenter; //Trengs denne?
-    private HashMap<JPanel, JLayeredPane> panel_and_pane; //Oversikt over hvilken JLayeredPane en sort tangent er lagt oppå.
-    private SpringLayout spring; //Bestemmer layoutet til de sorte tangentene.
+    private ArrayList<JPanel> sorte_tangenter; //Brukes for å plassere de sorte tangentene på riktig indeks i spring.
+    private SpringLayout spring; //Gir layoutet til de sorte tangentene.
     private JTextField chord_tekst, tekstfelt_1, tekstfelt_2, tekstfelt_3, tekstfelt_4, tekstfelt_5, tekstfelt_6, tekstfelt_7, tekstfelt_8; //Der man skriver inn navnet på akkordene.
     private PanelRound visual; //Et panel med avrundede kanter.
     private ButtonRound oktav_opp, oktav_ned, add_harmoni, show_harmoni; //Avrundede knapper.
-    private JLayeredPane overste_lag;
+    private JLayeredPane overste_lag, nederste_lag; //"Lagene" der vi plasserer de sorte tangentene og hvite tangentene. De sorte tangentene skal plasseres "over" de hvite.
     private pianoModel model; //Referanset til modellen.
     private pianoController controller; //Referanse til controller.
     
@@ -122,17 +120,28 @@ public class pianoView {
 
         hvit_panelet = new JPanel(); //Panelet til de hvite tangentene.
         hvit_panelet.setBackground(Color.DARK_GRAY);
-        hvit_panelet.setBounds(0, 400, 1281, 170);
+        hvit_panelet.setSize(1281, 170);
         hvit_panelet.setLayout(new GridLayout(1, 36));
+
+        nederste_lag = new JLayeredPane(); //Panelet som gjør at de hvite tangentene ligger "under" de sorte tangentene.
+        nederste_lag.setVisible(true);
+        nederste_lag.setBackground(Color.DARK_GRAY);
+        nederste_lag.setBounds(0, 400, 1281, 170);
+        nederste_lag.add(hvit_panelet, 0);
 
         sort_panelet = new JPanel(); //Panelet til de sorte tangentene.
         spring = new SpringLayout();
         sort_panelet.setLayout(spring);
         sort_panelet.setOpaque(false);
-        sort_panelet.setBackground(Color.RED);
-        sort_panelet.setBounds(35, 400, 1176, 100);
+        sort_panelet.setSize(1176, 100);
 
-        tastatur = new HashMap<String,String>(); //For å koble en tast til en tangent på keyboardet.
+        overste_lag = new JLayeredPane(); //Panelet som gjør at de sorte tangentene ligger "over" de hvite tangentene.
+        overste_lag.setBackground(Color.DARK_GRAY);
+        overste_lag.setVisible(true);
+        overste_lag.setBounds(35, 400, 1176, 100);
+        overste_lag.add(sort_panelet, 200);
+
+        tastatur = new HashMap<String,String>(); //For å koble en tast til en tangent på keyboardet, gjør det lettere å hente ut noten som korresponderer med en tast senere.
         tastatur.put("A", "C");
         tastatur.put("W", "Db");
         tastatur.put("S", "D");
@@ -149,12 +158,9 @@ public class pianoView {
         vinduet = new best_frame("Piano Ver.1.0");
 
         oktav_liste = new ArrayList<ArrayList<JPanel>>(); //Lista av oktaver
-        int antall = 0;
-        int x = 35;
-        sorte_tangenter = new ArrayList<JPanel>(); //Brukes for å beregne avstanden mellom hver tangent i sort_panelet.
-        panel_and_pane = new HashMap<JPanel, JLayeredPane>();
+        int antall = 0; //Holder orden på hvilken oktav vi oppretter tangenter i.
+        sorte_tangenter = new ArrayList<JPanel>(); //Brukes for å gi sorte tangenter riktig visuell avstand i spring.
         while (antall < 6) { 
-            
             oktav = new ArrayList<JPanel>();    //Et oktav objekt. Hver oktav skal ha
                                                 //12 noter (untatt siste oktaven).
             if (antall == 5) { //Setter kun inn en tangent i den siste oktaven.
@@ -172,7 +178,7 @@ public class pianoView {
                 if (note_farge.get(notene_navn.get(i)) == Color.WHITE) {
                     tangent = new JPanel(); // Gir riktig navn til noten.
                     tangent.setName(notene_navn.get(i));
-                    tangent.setPreferredSize(new Dimension(40, 10));
+                    tangent.setSize(40, 170);
                     tangent.setBackground(Color.WHITE);
                     tangent.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
                     oktav.add(tangent); //Setter inn tangent i oktaven.
@@ -183,45 +189,44 @@ public class pianoView {
                     tangent.setName(notene_navn.get(i));
                     tangent.setBackground(Color.BLACK);
                     tangent.setBorder(BorderFactory.createEtchedBorder());
-                    tangent.setSize(19, 100);
-                    sorte_tangenter.add(tangent);
+                    tangent.setPreferredSize(new Dimension(19, 100));
                     oktav.add(tangent); // setter inn tangent i oktaven.
-                    overste_lag = new JLayeredPane();
-                    overste_lag.setBackground(Color.RED);
-                    vinduet.add(overste_lag);
-                    overste_lag.setVisible(true);
-                    overste_lag.setBounds(x, 400, 19, 100);
-                    overste_lag.add(tangent, JLayeredPane.PALETTE_LAYER);
-                    panel_and_pane.put(tangent, overste_lag);
-                    if (notene_navn.get(i).equals("Db")) {
-                        x += 36;
-                    }
-                    else if (notene_navn.get(i).equals("Eb")) {
-                        x += 69;
-                    } 
-                    else if (notene_navn.get(i).equals("Gb")) {
-                        x += 36;
-                    } 
-                    else if (notene_navn.get(i).equals("Ab")) {
-                        x += 36;
-                    } 
-                    else if (notene_navn.get(i).equals("Bb")) {
-                        x -= 1;
-                    } 
+                    sorte_tangenter.add(tangent);
+                    sort_panelet.add(tangent);
                 }
             }
             oktav_liste.add(oktav); //Setter oktaven inn i oktavLista på indeks.
             antall++;
-            x += 70;
         }
+
+        //Dårlig skrevet, fikser det senere.
+        int x = 0;
+        for (int j = 0; j < sorte_tangenter.size(); j++){ //Gjøres så de sorte tangentene blir plassert på riktig index i sort_panelet.     
+            if (j != 0){
+                spring.putConstraint(SpringLayout.WEST, sorte_tangenter.get(j), x, SpringLayout.EAST, sorte_tangenter.get(j-1));     
+            }
+            if (sorte_tangenter.get(j).getName() == "Db") {
+                x = 17;
+            }
+            else if (sorte_tangenter.get(j).getName() == "Eb") {
+                x = 50;
+            } 
+            else if (sorte_tangenter.get(j).getName() == "Gb") {
+                x = 17;
+            } 
+            else if (sorte_tangenter.get(j).getName() == "Ab") {
+                x = 16;
+            } 
+            else if (sorte_tangenter.get(j).getName() == "Bb") {
+                x = 50;
+            } 
+        }
+
         vinduet.add(border_1);
         vinduet.add(border_2);        
-        vinduet.add(hvit_panelet);
+        vinduet.add(overste_lag);   //Legges til før nederste_lag så det ligger "øverst" av tangentpanelene.
+        vinduet.add(nederste_lag);
         vinduet.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        venstre_naboer = new HashMap<JPanel, JPanel>();
-        hoyre_naboer = new HashMap<JPanel, JPanel>();
-        finn_hoyre_og_venstre_naboer(); //Finner alle høyre og venstre naboer for hver hvite akkord i alle oktaver.
 
         //Nå kommer masse kode som oppretter det visuelle i programmet:
         knappe_panelet = new JPanel();  //Panelet hvor knappene PLAY, CLEAR og EXIT plasseres.
@@ -510,30 +515,6 @@ public class pianoView {
         connection.put("WRITE_HARMONY", s);
         generisk<JSlider> t = new generisk<>(slider);
         connection.put("VOLUME", t);
-    }
-
-    //Metoden kjøres veldig mange ganger, men det blir gjort orgentlig.
-    //Evt. skriv om senere eller finn en bedre måte å finne naboer til hvite
-    //tangenter.
-    public void finn_hoyre_og_venstre_naboer(){
-        int index = 0;
-        while (index < 5){ 
-            for (int i = 0; i < notene_navn.size(); i++){
-                if (notene_navn.get(i).equals("C") || notene_navn.get(i).equals("F")){ //Finner sorte tangenter(JPanels) som er naboer til disse hvite tangentene i keyboardet.
-                    hoyre_naboer.put(oktav_liste.get(index).get(i), oktav_liste.get(index).get(i + 1)); //Venstre nabo.
-                    venstre_naboer.put(oktav_liste.get(index).get(i), oktav_liste.get(index).get(i + 1)); //Høyre nabo, settes til å være lik seg selv (så vi ikke får til en indeks som ikke finnes).
-                }
-                if (notene_navn.get(i).equals("E") ||notene_navn.get(i).equals("B")){
-                    hoyre_naboer.put(oktav_liste.get(index).get(i), oktav_liste.get(index).get(i - 1)); //Venstre nabo , settes til å være lik seg selv (så vi ikke får til en indeks som ikke finnes).
-                    venstre_naboer.put(oktav_liste.get(index).get(i), oktav_liste.get(index).get(i - 1)); //Høyre nabo.
-                }
-                if (notene_navn.get(i).equals("D") || notene_navn.get(i).equals("G") || notene_navn.get(i).equals("A")){
-                    hoyre_naboer.put(oktav_liste.get(index).get(i), oktav_liste.get(index).get(i + 1)); //Venstre nabo.
-                    venstre_naboer.put(oktav_liste.get(index).get(i), oktav_liste.get(index).get(i - 1)); //Venstre nabo.
-                }
-            }   
-        index ++;
-        }
     }
 
     class generisk<E> { //Brukes for å holde orden på buttons, labels og paneler i 
@@ -871,23 +852,14 @@ public class pianoView {
                 }
 
                 if (pressedKeys.size() == 0){ //Gjøres når tangenten har blitt sluppet etter bruk.
-                    timer.stop();
-                    if (note_farge.get(tastatur.get(key)) == Color.WHITE){
-                        oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(key))).setBackground(Color.WHITE);
-                        panel_and_pane.get(venstre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(key))))).moveToFront(venstre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(key)))));  
-                        panel_and_pane.get(hoyre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(key))))).moveToFront(hoyre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(key)))));
-                    }
-                    else {
-                        oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(key))).setBackground(Color.BLACK);
-                    }                
+                    timer.stop();             
+                    oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(key))).setBackground(note_farge.get(tastatur.get(key))); //Farger noten tilbake til sin opprinnlige farge.
+                    nederste_lag.moveToBack(hvit_panelet); //Flytter panelet med alle de hvite tangentene til det nederste laget igjen, så ting ser riktig ut.
                 }
 	        }
 
             public void actionPerformed(ActionEvent e){ //Gjøres når tangenten er trykket nede.
                 spill_noten(tastatur.get(e.getActionCommand()), Color.GREEN, oktav_tall, 1);
-                //GJØR DISSE TO MER EFFEKTIVT!
-                // panel_and_pane.get(venstre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(e.getActionCommand()))))).moveToFront(venstre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(e.getActionCommand())))));  
-                // panel_and_pane.get(hoyre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(e.getActionCommand()))))).moveToFront(hoyre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(tastatur.get(e.getActionCommand())))));  
             } 
 
             class tangent_action extends AbstractAction implements ActionListener{
@@ -1326,10 +1298,7 @@ public class pianoView {
             int hvilken_note = 0; //Avgjør hvilken note som spilles.
             oktav_liste.get(oktav).get(notene_navn.indexOf(denne_noten)).setBackground(farge);
             hvilken_note += notene_navn.indexOf(denne_noten);
-            if (note_farge.get(denne_noten) == Color.WHITE){
-                panel_and_pane.get(venstre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(denne_noten)))).moveToFront(venstre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(denne_noten))));  
-                panel_and_pane.get(hoyre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(denne_noten)))).moveToFront(hoyre_naboer.get(oktav_liste.get(oktav_tall).get(notene_navn.indexOf(denne_noten))));       
-            }     
+            nederste_lag.moveToBack(hvit_panelet); //Når en note spilles av, senkes hvit_panelet med moveToBack().     
             if (farge == Color.GREEN){
                     Note noten = new Note();
                     switch(o){
@@ -1439,10 +1408,6 @@ class akkordMonitor{ //Brukes til avspilling av akkordene i progresjonen.
             for (int i = 0; i < denne_listen.size(); i++){
                 oktav = rammen.finn_oktav(denne_listen, oktav, navn_paa_noter, i);
                 rammen.spill_noten(denne_listen.get(i), farge, oktav, 3);
-                if (note_farge.get(denne_listen.get(i)) == Color.WHITE){
-                    panel_and_pane.get(venstre_naboer.get(oktav_liste.get(oktav).get(notene_navn.indexOf(denne_listen.get(i))))).moveToFront(venstre_naboer.get(oktav_liste.get(oktav).get(notene_navn.indexOf(denne_listen.get(i)))));  
-                    panel_and_pane.get(hoyre_naboer.get(oktav_liste.get(oktav).get(notene_navn.indexOf(denne_listen.get(i))))).moveToFront(hoyre_naboer.get(oktav_liste.get(oktav).get(notene_navn.indexOf(denne_listen.get(i)))));
-                }
                 alle_noter[i] = denne_listen.get(i);    
             }
             alle_hvite.signal(); //Kan nå fargelegge notene hvite.
@@ -1470,6 +1435,8 @@ class akkordMonitor{ //Brukes til avspilling av akkordene i progresjonen.
             rammen.fargelegg_oktaver(oktav+3);
             rammen.fargelegg_oktaver(oktav+4);
             rammen.fargelegg_oktaver(oktav+5);
+            nederste_lag.moveToBack(hvit_panelet); //Når en note spilles av, senkes hvit_panelet med moveToBack().     
+
         }
         catch(InterruptedException a){
             System.out.println(a);
