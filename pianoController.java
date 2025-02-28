@@ -47,10 +47,6 @@ class noteTask implements Runnable{
          try { 
             for (int i = 0; i < traad.length; i++){
             traad[i] = new Thread(new Traad());
-            System.out.println("her");
-            // Thread.sleep(2000);
-            // kont.game.oppdatering();
-            // view.oppdaterView(kont);
             }
         }
         catch (IndexOutOfBoundsException n) {
