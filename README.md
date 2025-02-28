@@ -11,7 +11,7 @@ https://github.com/user-attachments/assets/f873a794-2001-43df-8e74-37dcb57870ce
 
 ## 3. Export chord progressions to DAWs and other audio software
 
-
+https://github.com/user-attachments/assets/4d6f0a6d-aa03-4c8f-a8d9-7954ffd37247
 
 ## 4. Connect an external keyboard
 
