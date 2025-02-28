@@ -19,6 +19,4 @@ https://github.com/user-attachments/assets/f873a794-2001-43df-8e74-37dcb57870ce
 
 ## 5. Customize various settings
 
-
-
-
+https://github.com/user-attachments/assets/0faf35f6-b914-4681-8f20-07c24552c5a9
