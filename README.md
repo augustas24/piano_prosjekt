@@ -12,10 +12,12 @@ https://github.com/user-attachments/assets/f873a794-2001-43df-8e74-37dcb57870ce
 ## 3. Export chord progressions to DAWs and other audio software
 
 https://github.com/user-attachments/assets/4d6f0a6d-aa03-4c8f-a8d9-7954ffd37247
+(this video has been sped up and edited to fit within github's file size limit)
 
 ## 4. Connect an external keyboard
 
-
+https://github.com/user-attachments/assets/13375ce2-4045-4188-b214-36bfa62ae6d6
+(this video has been sped up and edited to fit within github's file size limit)
 
 ## 5. Customize various settings
 
